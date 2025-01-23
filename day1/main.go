@@ -32,18 +32,27 @@ func homeHandler(w http.ResponseWriter, r *http.Request) {
 	<!DOCTYPE html>
 	<html>
 	<head>
-		<title>足し算アプリ</title>
+		<title>電卓アプリ</title>
+		<script>
+		// ボタンを押したらフォームを送信
+		function calculate(op) {
+			document.getElementById("operation").value = op;
+			document.getElementById("calcForm").submit();
+		}
+		</script>
 	</head>
 	<body>
-		<h1>数字を2つ入力して足し算をしましょう</h1>
-		<form action="/calculate" method="post">
+		<h1>電卓アプリ</h1>
+		<form id="calcForm" action="/calculate" method="post">
 			<label for="num1">数字1:</label>
 			<input type="text" id="num1" name="num1" required>
 			<br>
 			<label for="num2">数字2:</label>
 			<input type="text" id="num2" name="num2" required>
 			<br><br>
-			<button type="submit">計算する</button>
+			<input type="hidden" id="operation" name="operation">
+			<button type="button" onclick="calculate('+')">+</button>
+			<button type="button" onclick="calculate('-')">-</button>
 		</form>
 	</body>
 	</html>
@@ -64,9 +73,10 @@ func caluculateHandler(w http.ResponseWriter, r *http.Request) {
 	// フォームデータの取得
 	num1Str := r.FormValue("num1")
 	num2Str := r.FormValue("num2")
+	operation := r.FormValue("operation")
 
 	// 入力されたデータをログに記録
-	log.Printf("入力された数値： num1=%s, num2=%s\n", num1Str, num2Str)
+	log.Printf("入力された数値： num1=%s, num2=%s, operation=%s\n", num1Str, num2Str, operation)
 
 	// 文字列を数値に変換
 	num1, err1 := strconv.Atoi(num1Str)
@@ -79,10 +89,19 @@ func caluculateHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// 計算
-	sum := num1 + num2
+	var result int
+	switch operation {
+	case "+":
+		result = num1 + num2
+	case "-":
+		result = num1 - num2
+	default:
+		log.Println("無効な演算子です", operation)
+		http.Error(w, "無効な演算子です", http.StatusBadRequest)
+	}
 
 	// 計算結果をログに出力
-	log.Printf("計算結果: %d + %d = %d\n", num1, num2, sum)
+	log.Printf("計算結果: %d %s %d = %d\n", num1, operation, num2, result)
 
 	tmpl := `
 	<!DOCTYPE html>
@@ -92,20 +111,22 @@ func caluculateHandler(w http.ResponseWriter, r *http.Request) {
 	</head>
 	<body>
 		<h1>計算結果</h1>
-		<p>{{.Num1}} + {{.Num2}} = {{.Sum}}</p>
+		<p>{{.Num1}} {{.Operation}} {{.Num2}} = {{.Result}}</p>
 		<a href="/">戻る</a>
 	</body>
 	</html>
 	`
 
 	data := struct {
-		Num1 int
-		Num2 int
-		Sum  int
+		Num1      int
+		Num2      int
+		Result    int
+		Operation string
 	}{
-		Num1: num1,
-		Num2: num2,
-		Sum:  sum,
+		Num1:      num1,
+		Num2:      num2,
+		Result:    result,
+		Operation: operation,
 	}
 
 	t, err := template.New("result").Parse(tmpl)
