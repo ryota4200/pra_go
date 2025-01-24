@@ -11,19 +11,19 @@ func main() {
 	fs := http.FileServer(http.Dir("./static"))
 	http.Handle("/static/", http.StripPrefix("/static/", fs))
 
-	http.HandleFunc("/", homeHundler)
-	http.HandleFunc("/calculate", calculateHundler)
+	http.HandleFunc("/", homeHandler)
+	http.HandleFunc("/calculate", calculateHandler)
 
 	log.Println("サーバーを起動します http://127.0.0.1:8080")
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }
 
-func homeHundler(w http.ResponseWriter, r *http.Request) {
+func homeHandler(w http.ResponseWriter, r *http.Request) {
 	tmpl := template.Must(template.ParseFiles("templates/index.html"))
 	tmpl.Execute(w, nil)
 }
 
-func calculateHundler(w http.ResponseWriter, r *http.Request) {
+func calculateHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		http.Error(w, "無効なリクエストメソッド", http.StatusMethodNotAllowed)
 		return
