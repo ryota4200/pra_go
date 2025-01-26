@@ -2,6 +2,7 @@ document.addEventListener("DOMContentLoaded", () =>{
     const todoForm = document.getElementById("todoForm");
     const todoInput = document.getElementById("todoInput");
     const todoList = document.getElementById("todoList");
+    const exportBtn = document.getElementById("exportBtn");
 
     // サーバからTODOリストを取得
     const fetchTodos = async () => {
@@ -47,5 +48,10 @@ document.addEventListener("DOMContentLoaded", () =>{
         fetchTodos();
 
     });
+
+    exportBtn.addEventListener("click", () =>{
+        window.location.href = "/api/export";
+    });
+
     fetchTodos();
 })

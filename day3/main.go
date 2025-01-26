@@ -27,6 +27,7 @@ func main() {
 	// ルートとAPIエンドポイントの設定
 	http.HandleFunc("/", homeHandler)
 	http.HandleFunc("/api/todos", todosHandler)
+	http.HandleFunc("/api/export", exportHandler)
 
 	log.Print("サーバを起動します http://localhost:8080")
 	log.Fatal(http.ListenAndServe(":8080", nil))
@@ -84,4 +85,19 @@ func todosHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "無効なリクエスト", http.StatusMethodNotAllowed)
 
 	}
+}
+
+// TODOリストをエクスポポート
+func exportHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		http.Error(w, "無効なメソッド", http.StatusMethodNotAllowed)
+		return
+	}
+	mutex.Lock()
+	defer mutex.Unlock()
+
+	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Content-Disposition", `attachemnt; filename="todo_list.json"`)
+	json.NewEncoder(w).Encode(todoList)
+
 }
